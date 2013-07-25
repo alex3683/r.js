@@ -1671,6 +1671,10 @@ define(function (require) {
                         //If we have a name, but no defined module, then add in the placeholder.
                         if (moduleName && falseProp(layer.modulesWithNames, moduleName) && !config.skipModuleInsertion) {
                             shim = config.shim && (getOwn(config.shim, moduleName) || (packageConfig && getOwn(config.shim, nonPackageName)));
+                            if( !shim ) {
+                                shim = context.config.shim && getOwn(context.config.shim, moduleName);
+                            }
+
                             if (shim) {
                                 singleContents += '\n' + namespaceWithDot + 'define("' + moduleName + '", ' +
                                                  (shim.deps && shim.deps.length ?

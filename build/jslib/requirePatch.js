@@ -235,6 +235,16 @@ define([ 'env!env/file', 'pragma', 'parse', 'lang', 'logger', 'commonJs', 'prim'
                                                         'for file: ' + url + '\n' + e1);
                                     }
                                 }).then(function () {
+
+                                    var localShims = parse.getLocalShims( contents ) || {};
+                                    if( Object.keys( localShims ).length ) {
+                                        require.config( {
+                                            shim: localShims
+                                        } );
+                                    }
+
+                                    return contents;
+                                }).then(function () {
                                     if (hasProp(context.plugins, moduleName)) {
                                         //This is a loader plugin, check to see if it has a build extension,
                                         //otherwise the plugin will act as the plugin builder too.

@@ -256,6 +256,39 @@ define(['./esprimaAdapter', 'lang'], function (esprima, lang) {
     };
 
     /**
+     * Finds calls to require.config({...}) and collects all shims defined within that file.
+     * @param {String} fileContents
+     * @returns {Object}
+     */
+    parse.getLocalShims = function( fileContents ) {
+        var localShims = {};
+
+        traverse(esprima.parse(fileContents, {range:true}), function (node) {
+            if( node.type === 'ExpressionStatement' &&
+                node.expression && node.expression.callee &&
+                node.expression.callee.object &&
+                node.expression.callee.property ) {
+
+                var o = node.expression.callee.object;
+                var p = node.expression.callee.property;
+                var a = node.expression.arguments;
+                if( o.name === 'require' && p.name === 'config' && a && a.length ) {
+                    var range = a[0].range;
+                    var config = eval( '('+fileContents.substring(range[0], range[1])+')' );
+                    if( config.shim ) {
+                        for (var i in config.shim) if (config.shim.hasOwnProperty(i)) {
+                            localShims[i] = config.shim[i];
+                        }
+                    }
+
+                }
+            }
+        });
+
+        return localShims;
+    };
+
+    /**
      * Finds require("") calls inside a CommonJS anonymous module wrapped in a
      * define(function(require, exports, module){}) wrapper. These dependencies
      * will be added to a modified define() call that lists the dependencies
